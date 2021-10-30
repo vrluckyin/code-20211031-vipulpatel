@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Smoke Test Program",
+            "type": "node",
+            "program": "${workspaceFolder}/dist/smoke.js",
+            "request": "launch",
+            "preLaunchTask": "npm: build"
+        },
+        {
+            "name": "Run Program",
+            "type": "node",
+            "program": "${workspaceFolder}/dist/program.js",
+            "request": "launch",
+            "preLaunchTask": "npm: build"
+        }
+    ]
+}
