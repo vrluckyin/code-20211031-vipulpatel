@@ -11,7 +11,7 @@ test('A male with 96 kg and 171 height should have "bmi" 32.8 falls into "Modera
     expect(model.HealthRisk).toBe("Medium risk");
 });
 
-test('calculate bmi"', async () => {
+test('calculate bmi having only 6 objects', async () => {
     let calc = new BmiCalculator();
     let data = `[
         {
