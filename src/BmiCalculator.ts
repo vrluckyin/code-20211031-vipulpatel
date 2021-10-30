@@ -1,5 +1,7 @@
 import { deserializeArray } from 'class-transformer';
 import { BmiEntity } from "./BmiEntity";
+import { promises } from "fs";
+const { readFile } = promises;
 
 export class BmiCalculator {
     constructor() {
@@ -10,7 +12,7 @@ export class BmiCalculator {
 
         if (model.Bmi <= 18.4) {
             model.Category = "Underweight";
-            model.Category = "Malnutrition risk";
+            model.HealthRisk = "Malnutrition risk";
         } else if (model.Bmi >= 18.5 && model.Bmi <= 24.9) {
             model.Category = "Normal weight";
             model.HealthRisk = "Low risk";
@@ -54,5 +56,12 @@ export class BmiCalculator {
 
     private countByCategory(data: BmiEntity[], category: string): number {
         return data.filter(x => x.Category.toLowerCase() === category.toLowerCase()).length;
+    }
+
+    async processFile(filename: string): Promise<BmiEntity[]> {
+
+        let data = JSON.parse(await readFile(`./data/${filename}`, "utf8"));
+        //console.log(data);
+        return await this.calculate(data);
     }
 }

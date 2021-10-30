@@ -2,6 +2,17 @@ import { BmiCalculator } from "../src/BmiCalculator"
 import { BmiEntity } from "./BmiEntity";
 
 
+test('simple test"', async () => {
+    let entity = new BmiEntity('Male', 55, 180);
+    let calc = new BmiCalculator();
+    await calc.analyze(entity);
+
+    //console.log('entity', entity);
+    expect(entity.Bmi).toBeDefined();
+    expect(entity.HealthRisk).toBeDefined();
+    expect(entity.Category).toBeDefined();
+});
+
 test('A male with 96 kg and 171 height should have "bmi" 32.8 falls into "Moderately obese" category having "Medium Health Risk"', async () => {
     let model = new BmiEntity('Male', 96, 171);
     let calc = new BmiCalculator();
@@ -52,6 +63,22 @@ test('calculate bmi having only 6 objects', async () => {
     try {
         expect(entities.length).toBe(6);
         entities.forEach(entity => {
+            expect(entity.Bmi).toBeDefined();
+            expect(entity.HealthRisk).toBeDefined();
+            expect(entity.Category).toBeDefined();
+        });
+    } catch (error) {
+        console.log('ERROR:', error);
+    }
+});
+
+test('process json file"', async () => {
+    let calc = new BmiCalculator();
+    let entities = await calc.processFile('sample.json');
+    console.log('Processed entities: ', entities.length);
+    try {
+        entities.forEach(entity => {
+            //console.log('entity', entity);
             expect(entity.Bmi).toBeDefined();
             expect(entity.HealthRisk).toBeDefined();
             expect(entity.Category).toBeDefined();
