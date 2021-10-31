@@ -1,8 +1,10 @@
 import { BmiEntity } from "./BmiEntity";
 import { promises } from "fs";
+import { IBmiEntityProcessor } from "./IBmiEntityProcessor";
 const { appendFile } = promises;
 const fs = require('fs');
 const StreamArray = require('stream-json/streamers/StreamArray');
+const { Writable } = require('stream');
 
 export class BmiCalculator {
     constructor() {
@@ -69,6 +71,35 @@ export class BmiCalculator {
         });
 
         return Promise.resolve(categoryCounter);
+    }
 
+    async processFile2(filename: string, processor: IBmiEntityProcessor): Promise<void> {
+        let filePath = `./data/${filename}`;
+        const fileStream = fs.createReadStream(filePath);
+        const jsonStream = StreamArray.withParser();
+        let that: BmiCalculator = this;
+        await processor.start();
+
+        const processingStream = new Writable({
+            write({ key, value }, encoding, callback) {
+                setTimeout(() => {
+                    console.log(value);
+                    (async () => await that.analyze(value))();
+                    (async () => await processor.process(value))();
+                    callback();
+                }, 10);
+            },
+            //Don't skip this, as we need to operate with objects, not buffers
+            objectMode: true
+        });
+
+        //Pipe the streams as follows
+        fileStream.pipe(jsonStream.input);
+        jsonStream.pipe(processingStream);
+
+        //So we're waiting for the 'finish' event when everything is done.
+        processingStream.on('finish', async () => {
+            await processor.complete();
+        });
     }
 }
