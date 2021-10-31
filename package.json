@@ -8,12 +8,13 @@
   },
   "scripts": {
     "build": "npx tsc --build src",
-    "test": "npx jest",
+    "test": "npx jest --detectOpenHandles",
     "rebuild": "npm run clean && npm run build",
     "ts": "ts-node"
   },
   "dependencies": {
     "class-transformer": "^0.4.0",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "stream-json": "^1.7.3"
   }
 }

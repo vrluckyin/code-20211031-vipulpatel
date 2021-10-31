@@ -1,7 +1,8 @@
-import { deserializeArray } from 'class-transformer';
 import { BmiEntity } from "./BmiEntity";
 import { promises } from "fs";
-const { readFile } = promises;
+const { appendFile } = promises;
+const fs = require('fs');
+const StreamArray = require('stream-json/streamers/StreamArray');
 
 export class BmiCalculator {
     constructor() {
@@ -34,34 +35,40 @@ export class BmiCalculator {
         return;
     }
 
-    async calculate(data: string): Promise<BmiEntity[]>;
-    async calculate(data: BmiEntity[] | string): Promise<BmiEntity[]> {
-        let entities: BmiEntity[];
-        if (typeof data === 'string') {
-            entities = deserializeArray(BmiEntity, data);
+    async processFile(filename: string, category: string): Promise<number> {
+        let filePath = `./data/${filename}`;
+        let outfilePath = `./data/out-${filename}`;
+
+        if (fs.existsSync(outfilePath)) {
+            fs.unlinkSync(outfilePath);
         }
-        else {
-            entities = data;
-        }
-        entities.forEach((item) => {
-            this.analyze(item);
+
+        await appendFile(
+            outfilePath, "["
+        );
+        const jsonStream = StreamArray.withParser();
+        const fileStream = fs.createReadStream(filePath).pipe(jsonStream.input);
+        let categoryCounter: number = 0;
+
+        jsonStream.on('data', async ({ key, value }) => {
+            await this.analyze(value);
+            if (value.Category.toLowerCase() == category.toLowerCase()) {
+                categoryCounter++;
+            }
+            let data = JSON.stringify(value) + ',\r\n';
+            await appendFile(
+                outfilePath, data
+            );
+            console.log(key, data);
         });
 
-        return entities;
-    }
+        jsonStream.on('end', async () => {
+            await appendFile(
+                outfilePath, "{}]"
+            );
+        });
 
-    countOverweight(data: BmiEntity[]): number {
-        return this.countByCategory(data, 'Overweight');
-    }
+        return Promise.resolve(categoryCounter);
 
-    private countByCategory(data: BmiEntity[], category: string): number {
-        return data.filter(x => x.Category.toLowerCase() === category.toLowerCase()).length;
-    }
-
-    async processFile(filename: string): Promise<BmiEntity[]> {
-
-        let data = JSON.parse(await readFile(`./data/${filename}`, "utf8"));
-        //console.log(data);
-        return await this.calculate(data);
     }
 }
