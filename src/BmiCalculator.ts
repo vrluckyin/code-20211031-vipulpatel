@@ -1,13 +1,13 @@
 import { BmiEntity } from "./BmiEntity";
-import { promises } from "fs";
 import { IBmiEntityProcessor } from "./IBmiEntityProcessor";
-const { appendFile } = promises;
 const fs = require('fs');
 const StreamArray = require('stream-json/streamers/StreamArray');
 const { Writable } = require('stream');
 
 export class BmiCalculator {
+    isFinished: boolean;
     constructor() {
+        this.isFinished = false;
     }
 
     async analyze(model: BmiEntity): Promise<void> {
@@ -37,43 +37,7 @@ export class BmiCalculator {
         return;
     }
 
-    async processFile(filename: string, category: string): Promise<number> {
-        let filePath = `./data/${filename}`;
-        let outfilePath = `./data/out-${filename}`;
-
-        if (fs.existsSync(outfilePath)) {
-            fs.unlinkSync(outfilePath);
-        }
-
-        await appendFile(
-            outfilePath, "["
-        );
-        const jsonStream = StreamArray.withParser();
-        const fileStream = fs.createReadStream(filePath).pipe(jsonStream.input);
-        let categoryCounter: number = 0;
-
-        jsonStream.on('data', async ({ key, value }) => {
-            await this.analyze(value);
-            if (value.Category.toLowerCase() == category.toLowerCase()) {
-                categoryCounter++;
-            }
-            let data = JSON.stringify(value) + ',\r\n';
-            await appendFile(
-                outfilePath, data
-            );
-            console.log(key, data);
-        });
-
-        jsonStream.on('end', async () => {
-            await appendFile(
-                outfilePath, "{}]"
-            );
-        });
-
-        return Promise.resolve(categoryCounter);
-    }
-
-    async processFile2(filename: string, processor: IBmiEntityProcessor): Promise<void> {
+    async processFile(filename: string, processor: IBmiEntityProcessor): Promise<void> {
         let filePath = `./data/${filename}`;
         const fileStream = fs.createReadStream(filePath);
         const jsonStream = StreamArray.withParser();
@@ -83,9 +47,10 @@ export class BmiCalculator {
         const processingStream = new Writable({
             write({ key, value }, encoding, callback) {
                 setTimeout(() => {
-                    console.log(value);
-                    (async () => await that.analyze(value))();
-                    (async () => await processor.process(value))();
+                    that.analyze(value).then(d => { });
+                    processor.process(value).then(d => { });
+                    // (async () => await that.analyze(value))();
+                    // (async () => await processor.process(value))();
                     callback();
                 }, 10);
             },
@@ -93,13 +58,11 @@ export class BmiCalculator {
             objectMode: true
         });
 
-        //Pipe the streams as follows
         fileStream.pipe(jsonStream.input);
         jsonStream.pipe(processingStream);
 
-        //So we're waiting for the 'finish' event when everything is done.
         processingStream.on('finish', async () => {
-            await processor.complete();
+            this.isFinished = true;
         });
     }
 }

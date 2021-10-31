@@ -2,14 +2,14 @@ import { BmiEntity } from "./BmiEntity";
 import { IBmiEntityProcessor } from "./IBmiEntityProcessor";
 
 export class BmiCategoryCountProcessor implements IBmiEntityProcessor {
-    result: number | 0;
+    result: number;
     category: string;
     constructor(category: string) {
         this.category = category;
-        this.result = 0;
     }
 
     async start(): Promise<void> {
+        this.result = 0;
     }
 
     async process(entity: BmiEntity): Promise<void> {
@@ -20,6 +20,5 @@ export class BmiCategoryCountProcessor implements IBmiEntityProcessor {
     }
 
     async complete(): Promise<void> {
-        console.log(`======= There are ${this.result} '${this.category}'`);
     }
 }

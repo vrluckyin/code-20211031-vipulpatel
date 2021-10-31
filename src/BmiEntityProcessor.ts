@@ -34,6 +34,5 @@ export class BmiEntityProcessor implements IBmiEntityProcessor {
         await appendFile(
             this.outFilePath, "{}]"
         );
-        console.log(`======= Processed Objects: ${this.result}`);
     }
 }

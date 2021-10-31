@@ -4,5 +4,5 @@ export interface IBmiEntityProcessor {
     result: number;
     start(): Promise<void>
     process(entity: BmiEntity): Promise<void>;
-    complete(): Promise<any>;
+    complete(): Promise<void>;
 }
