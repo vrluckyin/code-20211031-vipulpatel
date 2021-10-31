@@ -16,7 +16,7 @@ Please follow the steps to run the code
 
 1) npm install
 2) npx jest
-    2a) To run large file test, please remove "x" from unit test **xtest("process large json file")**
+    2a) To run large file test, please remove "x" from unit test **xtest(".....")**
 
 output file is generated in "out" folder.
 
